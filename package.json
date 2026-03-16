@@ -1,0 +1,57 @@
+{
+  "name": "@johngalt017/memory-layer",
+  "version": "1.0.0",
+  "description": "MCP server for persistent AI memory management with leveled context (L0/L1/L2)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JohnGalt017/memory-layer.git"
+  },
+  "keywords": [
+    "mcp",
+    "memory-bank",
+    "memory-layer",
+    "ai-memory",
+    "claude",
+    "cline",
+    "cursor"
+  ],
+  "bugs": {
+    "url": "https://github.com/JohnGalt017/memory-layer/issues"
+  },
+  "homepage": "https://github.com/JohnGalt017/memory-layer#readme",
+  "main": "dist/main/index.js",
+  "files": [
+    "dist"
+  ],
+  "author": "johngalt017",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "memory-layer": "dist/main/index.js"
+  },
+  "scripts": {
+    "build": "tsc && shx chmod +x dist/**/*.js",
+    "prepare": "npm run build",
+    "dev": "ts-node src/main/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.5.0",
+    "fs-extra": "^11.2.0",
+    "gray-matter": "4.0.3"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.11.19",
+    "@vitest/coverage-istanbul": "^3.0.8",
+    "@vitest/coverage-v8": "^3.1.1",
+    "@vitest/ui": "^3.0.8",
+    "shx": "^0.4.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.8"
+  }
+}

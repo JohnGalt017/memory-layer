@@ -1,0 +1,29 @@
+node_modules
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+dist
+coverage
+.worktrees
+
+# Build artifacts
+*.tsbuildinfo
+*.tgz
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cache
+.cache/
+
+# AI assistant instructions
+custom-instructions.md
