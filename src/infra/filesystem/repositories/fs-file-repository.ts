@@ -184,8 +184,8 @@ export class FsFileRepository implements FileRepository {
 
   async listFilesWithMetadata(
     projectName?: string
-  ): Promise<Array<{ project: string; fileName: string; metadata: Record<string, unknown>; abstract: string }>> {
-    const results: Array<{ project: string; fileName: string; metadata: Record<string, unknown>; abstract: string }> = [];
+  ): Promise<Array<{ project: string; fileName: string; metadata: Record<string, unknown>; abstract: string; tokens: string }>> {
+    const results: Array<{ project: string; fileName: string; metadata: Record<string, unknown>; abstract: string; tokens: string }> = [];
 
     const projects = projectName
       ? [projectName]
@@ -200,7 +200,8 @@ export class FsFileRepository implements FileRepository {
         if (!content) continue;
         const { metadata } = this.frontmatter.parse(content);
         const abstract = this.frontmatter.extractAbstract(content);
-        results.push({ project, fileName: file as string, metadata, abstract });
+        const tokens = `~${Math.ceil(content.length / 4)}`;
+        results.push({ project, fileName: file as string, metadata, abstract, tokens });
       }
     }
 

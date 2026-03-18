@@ -24,5 +24,5 @@ export interface FileRepository {
   ): Promise<string | null>;
   listFilesWithMetadata(
     projectName?: string
-  ): Promise<Array<{ project: string; fileName: string; metadata: Record<string, unknown>; abstract: string }>>;
+  ): Promise<Array<{ project: string; fileName: string; metadata: Record<string, unknown>; abstract: string; tokens: string }>>;
 }

@@ -10,6 +10,8 @@ export interface OverviewEntry {
   abstract: string;
   tags?: string[];
   updated?: string;
+  tokens?: string;
+  pendingChanges?: number;
 }
 
 export interface OverviewUseCase {
