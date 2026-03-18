@@ -20,15 +20,23 @@ export class ListProjectsController
       const projects = await this.listProjectsUseCase.listProjects();
       if (!this.pendingRepo) return ok(projects);
 
-      const enriched = await Promise.all(
+      const pendingCounts = new Map<string, number>();
+      await Promise.all(
         projects.map(async (name) => {
-          const pending = await this.pendingRepo!.countChanges(name as string);
-          return pending > 0
-            ? { name, pendingChanges: pending }
-            : { name };
+          const count = await this.pendingRepo!.countChanges(name as string);
+          pendingCounts.set(name as string, count);
         })
       );
-      return ok(enriched as unknown as ListProjectsResponse);
+
+      const enrichedProjects: string[] = projects.map((project) => {
+        const count = pendingCounts.get(project as string) ?? 0;
+        if (count > 0) {
+          return `${project} (pending: ${count} changes)`;
+        }
+        return project as string;
+      });
+
+      return ok(enrichedProjects);
     } catch (error) {
       return serverError(error as Error);
     }

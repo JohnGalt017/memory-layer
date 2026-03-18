@@ -1,31 +1,11 @@
 import fs from "fs-extra";
 import path from "path";
-import { exec } from "child_process";
 import type {
   InitialSnapshot,
   CommitEntry,
 } from "../../domain/entities/watcher-state.js";
 import type { WatchIgnore } from "../security/watch-ignore.js";
-
-function runGit(
-  cwd: string,
-  args: string,
-  trim = true
-): Promise<string | null> {
-  return new Promise((resolve) => {
-    exec(
-      `git ${args}`,
-      { cwd, timeout: 5000 },
-      (err, stdout) => {
-        if (err) {
-          resolve(null);
-          return;
-        }
-        resolve(trim ? stdout.trim() : stdout);
-      }
-    );
-  });
-}
+import { runGit } from "./git-utils.js";
 
 async function readReadme(projectPath: string): Promise<string> {
   const readmePath = path.join(projectPath, "README.md");
@@ -177,24 +157,34 @@ function parseBranches(output: string): string[] {
 function parseStatus(output: string | null): {
   modified: string[];
   untracked: string[];
+  deleted: string[];
 } {
-  if (!output) return { modified: [], untracked: [] };
+  if (!output) return { modified: [], untracked: [], deleted: [] };
 
   const modified: string[] = [];
   const untracked: string[] = [];
+  const deleted: string[] = [];
 
   for (const line of output.split("\n")) {
     if (!line) continue;
     const code = line.substring(0, 2);
     const filePath = line.substring(3).trim();
-    if (code.includes("M")) {
-      modified.push(filePath);
-    } else if (code === "??") {
+    if (code === "??") {
       untracked.push(filePath);
+    } else if (code[0] === "D" || code[1] === "D") {
+      deleted.push(filePath);
+    } else if (
+      code.includes("M") ||
+      code[0] === "A" ||
+      code[1] === "A" ||
+      code[0] === "R" ||
+      code[1] === "R"
+    ) {
+      modified.push(filePath);
     }
   }
 
-  return { modified, untracked };
+  return { modified, untracked, deleted };
 }
 
 export class InitialScanExtractor {

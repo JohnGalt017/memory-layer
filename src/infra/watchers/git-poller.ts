@@ -1,5 +1,5 @@
-import { exec } from "child_process";
 import type { CommitEntry } from "../../domain/entities/watcher-state.js";
+import { runGit } from "./git-utils.js";
 
 const REF_REGEX = /^[a-f0-9]{4,40}$/;
 const PATH_REGEX = /^[a-zA-Z0-9_.\/\-]+$/;
@@ -13,26 +13,6 @@ function sanitizePath(filePath: string): string | null {
   if (filePath.includes("..")) return null;
   if (!PATH_REGEX.test(filePath)) return null;
   return filePath;
-}
-
-function runGit(
-  cwd: string,
-  args: string,
-  trim = true
-): Promise<string | null> {
-  return new Promise((resolve) => {
-    exec(
-      `git ${args}`,
-      { cwd, timeout: 5000 },
-      (err, stdout) => {
-        if (err) {
-          resolve(null);
-          return;
-        }
-        resolve(trim ? stdout.trim() : stdout);
-      }
-    );
-  });
 }
 
 function parseFilesChanged(lines: string[]): number {
@@ -98,29 +78,38 @@ export class GitPoller {
     return commits;
   }
 
-  async getStatus(): Promise<{ modified: string[]; untracked: string[] }> {
+  async getStatus(): Promise<{ modified: string[]; untracked: string[]; deleted: string[] }> {
     const output = await runGit(
       this.projectPath,
       "status --porcelain",
       false
     );
-    if (output === null) return { modified: [], untracked: [] };
+    if (output === null) return { modified: [], untracked: [], deleted: [] };
 
     const modified: string[] = [];
     const untracked: string[] = [];
+    const deleted: string[] = [];
 
     for (const line of output.split("\n")) {
       if (!line) continue;
       const code = line.substring(0, 2);
       const filePath = line.substring(3).trim();
-      if (code.includes("M")) {
-        modified.push(filePath);
-      } else if (code === "??") {
+      if (code === "??") {
         untracked.push(filePath);
+      } else if (code[0] === "D" || code[1] === "D") {
+        deleted.push(filePath);
+      } else if (
+        code.includes("M") ||
+        code[0] === "A" ||
+        code[1] === "A" ||
+        code[0] === "R" ||
+        code[1] === "R"
+      ) {
+        modified.push(filePath);
       }
     }
 
-    return { modified, untracked };
+    return { modified, untracked, deleted };
   }
 
   async getBranches(): Promise<string[]> {
@@ -136,7 +125,11 @@ export class GitPoller {
   async getCommitDetail(hash: string): Promise<string | null> {
     const safeHash = sanitizeRef(hash);
     if (!safeHash) return null;
-    return runGit(this.projectPath, `log --oneline -1 ${safeHash}`);
+    return runGit(
+      this.projectPath,
+      `log -1 -p --format="%H%n%an%n%aI%n%s" ${safeHash}`,
+      false
+    );
   }
 
   async getFileDiff(fromRev: string, filePath: string): Promise<string | null> {

@@ -84,12 +84,38 @@ describe("GitPoller", () => {
     const status = await poller.getStatus();
     expect(status.modified).toEqual(["src/index.ts", "src/other.ts"]);
     expect(status.untracked).toEqual(["src/new-file.ts", "docs/notes.md"]);
+    expect(status.deleted).toEqual([]);
+  });
+
+  it("should parse staged adds (A) as modified", async () => {
+    const output = ["A  src/new-staged.ts"].join("\n");
+    setupExec(output);
+    const status = await poller.getStatus();
+    expect(status.modified).toContain("src/new-staged.ts");
+    expect(status.deleted).toEqual([]);
+  });
+
+  it("should parse deleted files (D) into deleted array", async () => {
+    const output = [" D src/removed.ts", "D  src/also-removed.ts"].join("\n");
+    setupExec(output);
+    const status = await poller.getStatus();
+    expect(status.deleted).toContain("src/removed.ts");
+    expect(status.deleted).toContain("src/also-removed.ts");
+    expect(status.modified).toEqual([]);
+  });
+
+  it("should parse renames (R) as modified", async () => {
+    const output = ["R  src/old.ts -> src/new.ts"].join("\n");
+    setupExec(output);
+    const status = await poller.getStatus();
+    expect(status.modified).toContain("src/old.ts -> src/new.ts");
+    expect(status.deleted).toEqual([]);
   });
 
   it("should return empty status when git status fails", async () => {
     setupExec("", "", new Error("not a git repo"));
     const status = await poller.getStatus();
-    expect(status).toEqual({ modified: [], untracked: [] });
+    expect(status).toEqual({ modified: [], untracked: [], deleted: [] });
   });
 
   it("should get branches and strip * and whitespace", async () => {
@@ -116,10 +142,22 @@ describe("GitPoller", () => {
     expect(branches).toEqual([]);
   });
 
-  it("should get commit detail", async () => {
-    setupExec("abc1234 feat: add auth\n");
+  it("should get commit detail with full diff format", async () => {
+    const output = [
+      "abc1234def5678abc1234def5678abc1234def5678",
+      "Jane Doe",
+      "2026-03-18T10:00:00Z",
+      "feat: add auth",
+      "",
+      "diff --git a/src/auth.ts b/src/auth.ts",
+      "+new line",
+      "",
+    ].join("\n");
+    setupExec(output);
     const detail = await poller.getCommitDetail("abc1234");
-    expect(detail).toBe("abc1234 feat: add auth");
+    expect(detail).not.toBeNull();
+    expect(detail).toContain("feat: add auth");
+    expect(detail).toContain("diff --git");
   });
 
   it("should return null when getCommitDetail fails", async () => {

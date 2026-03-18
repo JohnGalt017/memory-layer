@@ -48,7 +48,7 @@ export interface InitialSnapshot {
   fileTree: string[];
   gitLog: CommitEntry[];
   branches: string[];
-  gitStatus: { modified: string[]; untracked: string[] };
+  gitStatus: { modified: string[]; untracked: string[]; deleted: string[] };
 }
 
 export interface IncrementalChanges {
@@ -62,7 +62,7 @@ export interface IncrementalChanges {
 export interface GitState {
   lastRev: string;
   lastBranches: string[];
-  lastStatus: { modified: string[]; untracked: string[] };
+  lastStatus: { modified: string[]; untracked: string[]; deleted: string[] };
 }
 
 export interface FsSnapshot {

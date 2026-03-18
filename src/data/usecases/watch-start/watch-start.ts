@@ -69,7 +69,8 @@ export class WatchStart implements WatchStartUseCase {
     return {
       status: "watching",
       gitAvailable,
-      hasPendingChanges: initialIndex.totalChanges > 0,
+      hasPendingChanges: initialIndex.snapshot !== undefined,
+      warning: gitAvailable ? undefined : "No git detected — change tracking is limited",
     };
   }
 }

@@ -116,13 +116,33 @@ describe("WatcherRegistry", () => {
   });
 
   describe("updateConfig", () => {
-    it("should update state fields without restarting interval", async () => {
-      const spyClearInterval = vi.spyOn(global, "clearInterval");
+    it("should update state fields", async () => {
       const state = makeState({ pollInterval: 30 });
       await sut.start(state);
+      sut.updateConfig("test-project", { pollInterval: 30 });
+      const active = sut.getActive().get("test-project")!;
+      expect(active.state.pollInterval).toBe(30);
+    });
+
+    it("should restart interval when pollInterval changes", async () => {
+      const spyClearInterval = vi.spyOn(global, "clearInterval");
+      const spySetInterval = vi.spyOn(global, "setInterval");
+      const state = makeState({ pollInterval: 30 });
+      await sut.start(state);
+      const callsBefore = spySetInterval.mock.calls.length;
       sut.updateConfig("test-project", { pollInterval: 60 });
       const active = sut.getActive().get("test-project")!;
       expect(active.state.pollInterval).toBe(60);
+      expect(spyClearInterval).toHaveBeenCalledTimes(1);
+      expect(spySetInterval.mock.calls.length).toBeGreaterThan(callsBefore);
+      expect(spySetInterval).toHaveBeenLastCalledWith(expect.any(Function), 60_000);
+    });
+
+    it("should not restart interval when pollInterval does not change", async () => {
+      const spyClearInterval = vi.spyOn(global, "clearInterval");
+      const state = makeState({ pollInterval: 30 });
+      await sut.start(state);
+      sut.updateConfig("test-project", { status: "watching" });
       expect(spyClearInterval).not.toHaveBeenCalled();
     });
 

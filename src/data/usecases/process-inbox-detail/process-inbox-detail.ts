@@ -1,4 +1,5 @@
 import fs from "fs-extra";
+import path from "path";
 import {
   ProcessInboxDetailUseCase,
   ProcessInboxDetailParams,
@@ -9,6 +10,18 @@ import {
 import { WatcherConfigRepository } from "../../protocols/watcher-config-repository.js";
 import { GitPoller } from "../../../infra/watchers/git-poller.js";
 import { WatchIgnore } from "../../../infra/security/watch-ignore.js";
+
+function parseCommitDetail(output: string, requestedHash: string): CommitDetail {
+  const lines = output.split("\n");
+  const hash = lines[0]?.trim() || requestedHash;
+  const author = lines[1]?.trim() || "";
+  const date = lines[2]?.trim() || "";
+  const message = lines[3]?.trim() || "";
+  // Diff starts after the 4-line header; skip blank separator line
+  const diffStart = lines.findIndex((l, i) => i >= 4 && l.startsWith("diff --git"));
+  const diff = diffStart >= 0 ? lines.slice(diffStart).join("\n") : "";
+  return { hash, message, author, date, diff };
+}
 
 export class ProcessInboxDetail implements ProcessInboxDetailUseCase {
   constructor(private readonly configRepo: WatcherConfigRepository) {}
@@ -33,14 +46,7 @@ export class ProcessInboxDetail implements ProcessInboxDetailUseCase {
       for (const hash of params.commits) {
         const detail = await poller.getCommitDetail(hash);
         if (detail) {
-          const [hashPart, ...rest] = detail.split(" ");
-          commits.push({
-            hash: hashPart,
-            message: rest.join(" "),
-            author: "",
-            date: "",
-            diff: "",
-          });
+          commits.push(parseCommitDetail(detail, hash));
         }
       }
     }
@@ -62,7 +68,8 @@ export class ProcessInboxDetail implements ProcessInboxDetailUseCase {
             content = diff ?? "";
           }
         } else {
-          const absolutePath = `${projectPath}/${filePath}`;
+          // H5: use path.join instead of string concatenation
+          const absolutePath = path.join(projectPath, filePath);
           const exists = await fs.pathExists(absolutePath);
           if (exists) {
             const raw = await fs.readFile(absolutePath, "utf-8");

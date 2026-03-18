@@ -23,7 +23,7 @@ const makeSnapshot = (): InitialSnapshot => ({
     { hash: "abc1234", message: "initial commit", filesCount: 1, tokens: "~5" },
   ],
   branches: ["main"],
-  gitStatus: { modified: [], untracked: [] },
+  gitStatus: { modified: [], untracked: [], deleted: [] },
 });
 
 const makeConfigRepo = (): WatcherConfigRepository => ({

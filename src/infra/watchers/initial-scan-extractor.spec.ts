@@ -130,7 +130,7 @@ describe("InitialScanExtractor", () => {
 
     expect(snapshot.gitLog).toEqual([]);
     expect(snapshot.branches).toEqual([]);
-    expect(snapshot.gitStatus).toEqual({ modified: [], untracked: [] });
+    expect(snapshot.gitStatus).toEqual({ modified: [], untracked: [], deleted: [] });
   });
 
   it("should include git log with up to 20 commits", async () => {
