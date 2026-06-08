@@ -55,7 +55,7 @@ export class McpServerAdapter {
     const transport = new StdioServerTransport();
     try {
       await this.server.connect(transport);
-      console.log("Memory Bank MCP server running on stdio");
+      console.error("Memory Bank MCP server running on stdio");
     } catch (error) {
       console.error(error);
     }

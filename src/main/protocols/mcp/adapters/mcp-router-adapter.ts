@@ -1,10 +1,10 @@
 import {
+  CallToolResult,
   Request as MCPRequest,
-  ServerResult as MCPResponse,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 
-export type MCPRequestHandler = (request: MCPRequest) => Promise<MCPResponse>;
+export type MCPRequestHandler = (request: MCPRequest) => Promise<CallToolResult>;
 
 export type MCPRoute = {
   schema: Tool;
