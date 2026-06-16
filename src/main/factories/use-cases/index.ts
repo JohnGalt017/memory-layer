@@ -1,6 +1,7 @@
 export * from "./append-file-factory.js";
 export * from "./list-project-files-factory.js";
 export * from "./list-projects-factory.js";
+export * from "./patch-file-factory.js";
 export * from "./read-file-factory.js";
 export * from "./search-files-factory.js";
 export * from "./update-file-factory.js";

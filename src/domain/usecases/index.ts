@@ -1,6 +1,7 @@
 export * from "./append-file.js";
 export * from "./list-project-files.js";
 export * from "./list-projects.js";
+export * from "./patch-file.js";
 export * from "./read-file.js";
 export * from "./search-files.js";
 export * from "./update-file.js";

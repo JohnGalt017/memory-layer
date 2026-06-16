@@ -1,6 +1,7 @@
 import {
   makeListProjectFilesController,
   makeListProjectsController,
+  makePatchController,
   makeReadController,
   makeUpdateController,
   makeWriteController,
@@ -134,6 +135,43 @@ export default () => {
       },
     },
     handler: adaptMcpRequestHandler(makeUpdateController()),
+  });
+
+  router.setTool({
+    schema: {
+      name: "memory_bank_patch",
+      description:
+        "Safely patch an existing memory bank file by replacing exact text. " +
+        "Fails without writing unless oldText occurs expectedReplacements times (default 1). " +
+        "Use instead of memory_bank_update for partial edits to large files.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          projectName: {
+            type: "string",
+            description: "The name of the project",
+          },
+          fileName: {
+            type: "string",
+            description: "The name of the file",
+          },
+          oldText: {
+            type: "string",
+            description: "Exact text to replace",
+          },
+          newText: {
+            type: "string",
+            description: "Replacement text. Use an empty string to delete oldText.",
+          },
+          expectedReplacements: {
+            type: "integer",
+            description: "Exact number of replacements required before writing (default 1)",
+          },
+        },
+        required: ["projectName", "fileName", "oldText", "newText"],
+      },
+    },
+    handler: adaptMcpRequestHandler(makePatchController()),
   });
 
   router.setTool({

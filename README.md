@@ -21,6 +21,7 @@ memory_bank_read L2    → full content (default)
 | `memory_bank_read` | Read a file with optional `level` param (L0/L1/L2) |
 | `memory_bank_write` | Create a new file |
 | `memory_bank_update` | Update an existing file |
+| `memory_bank_patch` | Safely replace exact text in an existing file (`oldText` → `newText`, default one match) |
 | `memory_bank_upsert` | Create or update (idempotent) |
 | `memory_bank_append` | Append content to a file |
 | `memory_bank_search` | Full-text search across all files in a project |
